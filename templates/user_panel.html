@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Brukerpanel{% endblock %}
+
+{% block content %}
+<h1>Bruker<span>panel</span></h1>
+<p class="subtitle">// TILGJENGELIG FOR USER OG ADMIN</p>
+
+<div class="card">
+    <h2>Innhold for innloggede brukere</h2>
+    <p style="color: var(--text-muted); line-height: 1.7; font-size: 0.9rem;">
+        Dette panelet er kun tilgjengelig for brukere med rollen <strong style="color: var(--accent);">user</strong>
+        eller <strong style="color: var(--salmon);">admin</strong>. 
+        Gjester (role: guest) vil bli sendt tilbake med en feilmelding.
+    </p>
+</div>
+
+<div class="card">
+    <h2>Eksempel på beskyttet innhold</h2>
+    <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.7;">
+        Her kan du legge til innhold som kun autoriserte brukere skal se —
+        f.eks. profilinnstillinger, data fra en database, eller andre funksjoner.
+    </p>
+</div>
+
+<a href="{{ url_for('dashboard') }}" class="btn btn-secondary">← Tilbake til dashboard</a>
+{% endblock %}

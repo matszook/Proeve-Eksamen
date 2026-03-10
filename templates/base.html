@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Flask Auth App{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% if session.username %}
+    <nav>
+        <div class="logo">// FLASK AUTH</div>
+        <div class="nav-links">
+            <span class="role-badge role-{{ session.role }}">{{ session.role }}</span>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('notattavle') }}">Notattavle</a>
+            {% if session.role in ['admin', 'user'] %}
+            <a href="{{ url_for('user_panel') }}">Brukerpanel</a>
+            {% endif %}
+            {% if session.role == 'admin' %}
+            <a href="{{ url_for('admin_panel') }}">Admin</a>
+            {% endif %}
+            <a href="{{ url_for('logout') }}" class="logout-btn">Logg ut</a>
+        </div>
+    </nav>
+    {% endif %}
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

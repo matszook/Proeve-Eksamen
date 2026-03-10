@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}Admin-panel{% endblock %}
+
+{% block content %}
+<h1>Admin<span>-panel</span></h1>
+<p class="subtitle">// BRUKERADMINISTRASJON — KUN FOR ADMIN</p>
+
+<div class="card">
+    <h2>Alle brukere ({{ users|length }} totalt)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>BRUKERNAVN</th>
+                <th>NAVN</th>
+                <th>ROLLE</th>
+                <th>HANDLINGER</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for username, data in users.items() %}
+            <tr>
+                <td style="font-family: 'Space Mono', monospace;">{{ username }}</td>
+                <td style="color: var(--text-muted);">{{ data.name }}</td>
+                <td><span class="role-badge role-{{ data.role }}">{{ data.role }}</span></td>
+                <td>
+                    {% if username != session.username %}
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <!-- Rediger-knapp som åpner skjema -->
+                        <button class="btn btn-secondary"
+                            style="padding: 0.3rem 0.8rem; font-size: 0.75rem;"
+                            onclick="toggleEdit('{{ username }}')">
+                            Rediger
+                        </button>
+                        <!-- Slett -->
+                        <form method="POST" action="/admin/slett/{{ username }}" style="display:inline;">
+                            <button type="submit" class="btn btn-danger"
+                                style="padding: 0.3rem 0.8rem; font-size: 0.75rem;"
+                                onclick="return confirm('Sikker på at du vil slette {{ username }}?')">
+                                Slett
+                            </button>
+                        </form>
+                    </div>
+                    {% else %}
+                    <span style="color: var(--text-muted); font-size: 0.8rem; font-family: 'Space Mono', monospace;">deg selv</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <!-- Rediger-skjema (skjult som standard) -->
+            {% if username != session.username %}
+            <tr id="edit-{{ username }}" style="display: none; background: rgba(0,0,0,0.2);">
+                <td colspan="4" style="padding: 1rem 0.8rem;">
+                    <form method="POST" action="/admin/endre/{{ username }}">
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+                            <div>
+                                <label>Nytt navn</label>
+                                <input type="text" name="name" value="{{ data.name }}" style="width: 180px;">
+                            </div>
+                            <div>
+                                <label>Nytt passord (valgfritt)</label>
+                                <input type="password" name="password" placeholder="La stå tomt for å beholde" style="width: 200px;">
+                            </div>
+                            <div>
+                                <label>Rolle</label>
+                                <select name="role" style="width: 120px;">
+                                    <option value="guest" {% if data.role == 'guest' %}selected{% endif %}>guest</option>
+                                    <option value="user"  {% if data.role == 'user'  %}selected{% endif %}>user</option>
+                                    <option value="admin" {% if data.role == 'admin' %}selected{% endif %}>admin</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1rem; font-size: 0.8rem;">
+                                Lagre
+                            </button>
+                            <button type="button" class="btn btn-muted" style="padding: 0.6rem 1rem; font-size: 0.8rem;"
+                                onclick="toggleEdit('{{ username }}')">
+                                Avbryt
+                            </button>
+                        </div>
+                    </form>
+                </td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Om rollesystemet</h2>
+    <p style="color: var(--text-muted); line-height: 1.8; font-size: 0.9rem;">
+        <strong style="color: var(--salmon);">admin</strong> — full tilgang, kan administrere brukere.<br>
+        <strong style="color: var(--accent);">user</strong> — tilgang til dashboard, notattavle og brukerpanel.<br>
+        <strong style="color: var(--text-muted);">guest</strong> — kun dashboard og notattavle (kan lese, ikke skrive).
+    </p>
+</div>
+
+<a href="{{ url_for('dashboard') }}" class="btn btn-secondary">← Tilbake til dashboard</a>
+
+<script>
+    function toggleEdit(username) {
+        const row = document.getElementById('edit-' + username);
+        row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+    }
+</script>
+{% endblock %}

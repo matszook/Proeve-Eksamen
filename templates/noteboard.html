@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Notattavle{% endblock %}
+
+{% block content %}
+<h1>Notat<span>tavle</span></h1>
+<p class="subtitle">// DELTE NOTATER FOR INNLOGGEDE BRUKERE</p>
+
+{% if session.role in ['admin', 'user'] %}
+<div class="card">
+    <h2>Legg til notat</h2>
+    <form method="POST" action="/notattavle/legg-til">
+        <div class="form-group">
+            <label>Ditt notat</label>
+            <textarea name="tekst" rows="3" required placeholder="Skriv noe..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Post notat</button>
+    </form>
+</div>
+{% else %}
+<div class="card">
+    <p style="color: var(--text-muted); font-family: 'Space Mono', monospace; font-size: 0.85rem;">
+        ⚠ Gjester kan lese notater, men ikke poste. Logg inn som <strong>user</strong> eller <strong>admin</strong> for å skrive.
+    </p>
+</div>
+{% endif %}
+
+<div class="card">
+    <h2>Notater ({{ notater|length }})</h2>
+    {% if notater %}
+        {% for notat in notater|reverse %}
+        <div class="note-item">
+            <div>
+                <div>{{ notat.tekst }}</div>
+                <div class="note-author">
+                    — {{ notat.navn }}
+                    <span class="role-badge role-{{ notat.rolle }}" style="margin-left: 0.4rem;">{{ notat.rolle }}</span>
+                </div>
+            </div>
+            {% if session.role == 'admin' or session.username == notat.username %}
+            <form method="POST" action="/notattavle/slett/{{ loop.revindex0 }}">
+                <button class="btn btn-danger" style="padding: 0.3rem 0.8rem; font-size: 0.75rem;">Slett</button>
+            </form>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <p style="color: var(--text-muted); font-family: 'Space Mono', monospace; font-size: 0.85rem;">Ingen notater enda.</p>
+    {% endif %}
+</div>
+{% endblock %}

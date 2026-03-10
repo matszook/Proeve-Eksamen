@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1>Hei, <span>{{ session.name }}</span>!</h1>
+<p class="subtitle">// DASHBOARD — INNLOGGET SOM {{ session.username.upper() }}</p>
+
+<div class="grid-2">
+    <div class="card">
+        <h2>Din konto</h2>
+        <p style="margin-bottom: 1rem; color: var(--text-muted); line-height: 1.6;">
+            Du er logget inn som <strong style="color: var(--white);">{{ session.username }}</strong>
+            med rollen <strong class="role-badge role-{{ session.role }}">{{ session.role }}</strong>.
+        </p>
+        <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.6;">
+            Ulike roller gir tilgang til ulike deler av appen.
+        </p>
+    </div>
+
+    <div class="card">
+        <h2>Tilganger</h2>
+        <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+            <div style="display: flex; align-items: center; gap: 0.8rem;">
+                <span style="color: var(--accent);">✓</span>
+                <span style="font-size: 0.9rem;">Dashboard (alle innloggede)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.8rem;">
+                <span style="color: var(--accent);">✓</span>
+                <span style="font-size: 0.9rem;">Notattavle (alle innloggede)</span>
+            </div>
+            {% if session.role in ['admin', 'user'] %}
+            <div style="display: flex; align-items: center; gap: 0.8rem;">
+                <span style="color: var(--accent);">✓</span>
+                <span style="font-size: 0.9rem;">Brukerpanel (user + admin)</span>
+            </div>
+            {% else %}
+            <div style="display: flex; align-items: center; gap: 0.8rem;">
+                <span style="color: var(--text-muted);">✗</span>
+                <span style="font-size: 0.9rem; color: var(--text-muted);">Brukerpanel (ingen tilgang)</span>
+            </div>
+            {% endif %}
+            {% if session.role == 'admin' %}
+            <div style="display: flex; align-items: center; gap: 0.8rem;">
+                <span style="color: var(--accent);">✓</span>
+                <span style="font-size: 0.9rem;">Admin-panel (kun admin)</span>
+            </div>
+            {% else %}
+            <div style="display: flex; align-items: center; gap: 0.8rem;">
+                <span style="color: var(--text-muted);">✗</span>
+                <span style="font-size: 0.9rem; color: var(--text-muted);">Admin-panel (ingen tilgang)</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Navigasjon</h2>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="{{ url_for('notattavle') }}" class="btn btn-secondary">→ Notattavle</a>
+        {% if session.role in ['admin', 'user'] %}
+        <a href="{{ url_for('user_panel') }}" class="btn btn-secondary">→ Brukerpanel</a>
+        {% endif %}
+        {% if session.role == 'admin' %}
+        <a href="{{ url_for('admin_panel') }}" class="btn btn-primary">→ Admin-panel</a>
+        {% endif %}
+        <a href="{{ url_for('logout') }}" class="btn btn-muted">Logg ut</a>
+    </div>
+</div>
+{% endblock %}
