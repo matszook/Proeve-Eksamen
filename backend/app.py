@@ -93,3 +93,33 @@ def create_thread():
     thread['_id'] = str(result.inserted_id)
     return jsonify(thread), 201
 
+@app.route('/api/threads/<thread_id>', methods = ['GET'])
+def get_thread(thread_id):
+    try:
+        thread = threads_col.find_one({'_id': ObjectId(thread_id)})
+        if not thread:
+            return jsonify({'error': 'Tråd ikke funnet'}), 404
+        thread['_id'] = str(thread['_id'])
+        comments = list(comments_col.find({'thread_id': thread_id}).sort('created_at', 1))
+        for c in comments:
+            c['_id'] = str(c['_id'])
+        return jsonify({'thread': thread, 'comments': comments})
+    except:
+        return jsonify({'error': 'Ugyldig ID'}), 400
+
+@app.route('/api/threads/<thread_id>', methods=['DELETE'])
+@jwt_required()
+def delete_thread(thread_id):
+    identity = get_jwt_identity()
+    try:
+        thread = threads_col.find_one({'_id': ObjectId(thread_id)})
+        if not thread:
+            return jsonify({'error': 'Tråd ikke funnet'}), 404
+        if thread['author'] != identity['username'] and identity['role'] not in ['admin', 'moderator']:
+            return jsonify({'error': 'Ingen tilgang'}), 403
+        threads_col.delete_one({'_id': ObjectId(thread_id)})
+        comments_col.delete_many({'thread_id': thread_id})
+        return jsonify({'message': 'Tråd slettet'})
+    except:
+        return jsonify({'error': 'Ugyldig ID'}), 400
+
