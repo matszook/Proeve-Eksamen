@@ -123,3 +123,53 @@ def delete_thread(thread_id):
     except:
         return jsonify({'error': 'Ugyldig ID'}), 400
 
+@app.route('/api/threads/<thread_id>/comments', methods=['POST'])
+@jwt_required()
+def add_comment(thread_id):
+    identity = get_jwt_identity()
+    if identity['role'] == 'guest':
+        return jsonify({'error': 'Gjester kan ikke utføre denne handlingen'}), 403
+    data = request.json
+    content = data.get('content', '').strip()
+
+    if not content:
+        return jsonify({'error': 'Kommentar kan ikke være tom'}), 400
+
+    comment = {
+        'thread_id': thread_id,
+        'content': content,
+        'author': identity['username'],
+        'author_name': identity['name'],
+        'role': identity['role'],
+        'created_at': datetime.now(timezone.utc)
+    }
+    result = comments_col.insert_one(comment)
+    comment['_id'] = str(result.inserted_id)
+    return jsonify(comment), 201
+
+@app.route('/api/threads/<thread_id>/comments/<comment_id>', methods=['DELETE'])
+@jwt_required()
+def delete_comment(thread_id, comment_id):
+    identity = get_jwt_identity()
+    try:
+        comment = comments_col.find_one({'_id': ObjectId(comment_id)})
+        if not comment:
+            return jsonify({'error': 'Kommentar ikke funnet'}), 404
+        if comment['author'] != identity['username'] and identity['role'] not in ['admin', 'moderator']:
+            return jsonify({'error': 'Ingen tilgang'}), 403
+        comments_col.delete_one({'_id': ObjectId(comment_id)})
+        return jsonify({'message': 'Kommentar slettet'})
+    except:
+        return jsonify({'error': 'Ugyldig ID'}), 400
+
+@app.route('/api/admin/users', methods=['GET'])
+@jwt_required()
+def get_users():
+    identity = get_jwt_identity()
+    if identity['role'] != 'admin':
+        return jsonify({'error': 'Ingen tilgang'}), 403
+    users = list(users_col.find({}, {'password': 0}))
+    for u in users:
+        u['_id'] = str(u['_id'])
+    return jsonify(users)
+
