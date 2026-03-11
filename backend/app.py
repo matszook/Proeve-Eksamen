@@ -173,3 +173,29 @@ def get_users():
         u['_id'] = str(u['_id'])
     return jsonify(users)
 
+@app.route('/api/admin/users/<username>/role', methods=['PUT'])
+@jwt_required()
+def update_role(username):
+    identity = get_jwt_identity()
+    if identity['role'] != 'admin':
+        return jsonify({'error': 'Ingen tilgang'}), 403
+    data = request.json
+    ny_rolle = data.get('role')
+    if ny_rolle not in ['guest', 'user', 'moderator', 'admin']:
+        return jsonify({'error': 'Ugyldig rolle'}), 400
+    users_col.update_one({'username': username}, {'$set': {'role': ny_rolle}})
+    return jsonify({'message': f'{username} oppdatert til {ny_rolle}'})
+
+@app.route('/api/admin/users/<username>', methods=['DELETE'])
+@jwt_required()
+def delete_user(username):
+    identity = get_jwt_identity()
+    if identity['role'] != 'admin':
+        return jsonify({'error': 'Ingen tilgang'}), 403
+    if username == identity['username']:
+        return jsonify({'error': 'Du kan ikke slette deg selv'}), 400
+    users_col.delete_one({'username': username})
+    return jsonify({'message': f'{username} slettet'})
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5001)
