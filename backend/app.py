@@ -60,3 +60,36 @@ def login():
     })
     return jsonify({'token': token, 'username': user['username'], 'role': user['role'], 'name': user['name']})
 
+@app.route('/api/threads', methods = ['GET'])
+def get_threads():
+    threads = list(threads_col.find().sort('created_at', -1))
+    for t in threads:
+        t['_id'] = str(t['_id'])
+        t['comment_count'] = comments_col.count_documents({'thread_id': t['_id']})
+    return jsonify(threads)
+
+@app.route('/api/threads', methods = ['POST'])
+@jwt_required()
+def create_thread():
+    identity = get_jwt_identity()
+    if identity['role'] == 'guest':
+        return jsonify({'error': 'Gjester kan ikke utføre denne handlingen'}), 403
+    data = request.json
+    title = data.get('title', '').strip()
+    content = data.get('content', '').strip()
+
+    if not title or not content:
+        return jsonify({'error': 'Tittel og innhold er påkrevd'}), 400
+    
+    thread = {
+        'title': title,
+        'content': content,
+        'author': identity['username'],
+        'author_name': identity['name'],
+        'role': identity['role'],
+        'created_at': datetime.now(timezone.utc)
+    }
+    result = threads_col.insert_one(thread)
+    thread['_id'] = str(result.inserted_id)
+    return jsonify(thread), 201
+
