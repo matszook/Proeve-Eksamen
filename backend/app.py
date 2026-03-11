@@ -11,3 +11,10 @@ app.config['JWT_SECRET_KEY'] = 'supersecret123'
 app.config['JWT_ACCES_TOKEN_EXPIRES'] = timedelta(days=7)
 jwt = JWTManager(app)
 CORS(app)
+
+client = MongoClient('mongodb://localhost:27017/')
+db = client['diskusjonsforum']
+
+users_col = db['users']
+threads_col = db['threads']
+comments_col = db['comments']
