@@ -42,3 +42,21 @@ def register():
 
     token = create_access_token(identity={'username': username, 'role': 'user', 'name': name})
     return jsonify({'token': token, 'username': username, 'role': 'user', 'name': name}), 201
+
+@app.route('/api/login', methods = ['POST'])
+def login():
+    data = request.json
+    username = data.get('username', '').strip()
+    password = data.get('password', '')
+
+    user = users_col.find_one({'username': username})
+    if not user or not bcrypt.checkpw(password.encode(), user['password']):
+        return jsonify({'error': 'Feil brukernavn eller passord'}), 401
+    
+    token = create_access_token(identity = {
+        'username': user['username'],
+        'role': user['role'],
+        'name': user['name']
+    })
+    return jsonify({'token': token, 'username': user['username'], 'role': user['role'], 'name': user['name']})
+
